@@ -28,14 +28,17 @@ function getIssueNumber(mesage) {
     return result ? result[1] : null;
 }
 
-function listCommits(own, repo, branch, author, since, until) {
-    var queryString = querystring.stringify({access_token:ACCESS_TOKEN, sha:branch, author:author, since:since, until:until});
+function listCommits(own, repo, branch, author, since, until, page) {
+    var page = page ? Number(page) : 0;
+    var queryString = querystring.stringify({access_token:ACCESS_TOKEN, sha:branch, author:author, since:since, until:until, page:page});
     var url = HOST + 'repos/' + own + '/' + repo +  '/commits?' + queryString;
     var options = {
         url:url,
         headers:headers
     };
-    return buildHttpPromise(options);
+    return buildHttpPromise(options).then(function(result){
+        return result.length == 30 ? listCommits(own, repo, branch, author, since, until, page + 1).then(function(values){return values.concat(result)}) : result;
+    });
 }
 
 function onlyUnique(value, index, self) { 
