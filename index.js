@@ -77,7 +77,8 @@ function listReport(own, repo, branch, author, since, until) {
                 return issue.title != null;
             }).map(function(issue) {
                 return {
-                    title:issue.title
+                    title:issue.title,
+                    homeUrl:issue.html_url
                 }
             });
             return result;
