@@ -1,6 +1,21 @@
 {
+  "name": "github-reporter",
+  "version":"0.0.1",
   "main":"./index",
+  "author": "Sparrow.jang",
+  "description":"It's a convenient tool to help you list your commits and issues.",
   "dependencies": {
     "request": "^2.85.0"
-  }
+  },
+  "repository":{
+    "type":"git",
+    "url":"https://github.com/eHanlin/github-reporter"
+  },
+  "keywords":[
+    "report",
+    "github",
+    "issue",
+    "commit",
+    "git"
+  ]
 }
