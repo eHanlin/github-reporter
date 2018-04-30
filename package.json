@@ -1,0 +1,6 @@
+{
+  "main":"./index",
+  "dependencies": {
+    "request": "^2.85.0"
+  }
+}
