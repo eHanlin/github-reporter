@@ -23,9 +23,22 @@ function getIssue(org, repo, number) {
     return buildHttpPromise(options);
 }
 
-function getIssueNumber(mesage) {
-    var result = /#([0-9]+)/.exec(mesage);
-    return result ? result[1] : null;
+function getIssueNumbers(message) {
+    var result = [];
+    var numbers = message.match(/#([0-9]+)/g) || [];
+    var rGithubURL = /https:\/\/github.com\/([^/]+)\/([^/]+)\/issues\/([0-9]+)/g
+    var githubCommits = (message.match(rGithubURL) || [])
+    .map(function(url){
+      var result = rGithubURL.exec(url);
+      return result && result.length > 3 ?  {own:result[1], repo:result[2],number:result[3]} : null;
+    });
+
+    result = result.concat(numbers.map(function(number){ return {number:number.replace('#','')};}));
+
+    if (githubCommits) {
+        result = result.concat(githubCommits);
+    }
+    return result;
 }
 
 function listCommits(own, repo, branch, author, since, until, page) {
@@ -55,17 +68,24 @@ function listReport(own, repo, branch, author, since, until) {
 
     .then(function(commits) {
         var messages = commits.map(function(commit){return commit.commit.message;});
+        var issueNumbers = [];
 
-        var promises = messages
-        .map(function(message){
-            return getIssueNumber(message);
+         messages
+        .forEach(function(message){
+            var numbers = getIssueNumbers(message);
+            if (numbers != null) {
+                issueNumbers = issueNumbers.concat(numbers);
+            }
+        });
+        
+        var promises = issueNumbers.map(function(issueNumber){
+            return JSON.stringify(issueNumber);
+        }).filter(onlyUnique)
+        .map(function(issueNumber){
+            return JSON.parse(issueNumber);
         })
-        .filter(function(number) {
-            return number != null;
-        })
-        .filter(onlyUnique)
-        .map(function(number){
-            return getIssue(own, repo, number)
+        .map(function(issueNumber){
+            return getIssue(issueNumber.own ? issueNumber.own : own, issueNumber.repo ? issueNumber.repo : repo, issueNumber.number)
         });
         return Promise.all(promises).then(function(issues){
             var result = {
